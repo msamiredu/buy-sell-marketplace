@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,20 +18,10 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'create'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'store']);
-    Route::get('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'store']);
-    Route::post('/logout', [\App\Http\Controllers\Auth\LogoutController::class, 'store'])->name('logout');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Cars', [
-            'auth' => [
-                'user' => auth()->user(),
-            ],
-        ]);
-    })->name('home');
-});
+require __DIR__.'/auth.php';
