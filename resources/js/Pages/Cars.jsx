@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Inertia } from '@inertiajs/inertia';
+import { Inertia } from '@inertiajs/react';
 
 export default function Cars({ auth }) {
     const [cars, setCars] = useState([]);
