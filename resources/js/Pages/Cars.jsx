@@ -7,21 +7,20 @@ export default function Cars({ auth }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios
-            .get('/api/cars', {
-                headers: {
-                    Authorization: `Bearer ${auth.user ? auth.user.api_token : ''}`,
-                },
-            })
-            .then((response) => {
-                setCars(response.data);
-                setLoading(false);
-            })
-            .catch((error) => {
-                console.error(error);
-                setLoading(false);
-            });
-    }, [auth.user]);
+        // Fetch CSRF token for Sanctum
+        axios.get('/sanctum/csrf-cookie').then(() => {
+            axios
+                .get('/api/cars')
+                .then((response) => {
+                    setCars(response.data);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching cars:', error);
+                    setLoading(false);
+                });
+        });
+    }, []);
 
     return (
         <AuthenticatedLayout
