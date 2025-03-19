@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, usePage } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Cars({ auth }) {
+    const { props } = usePage();
     const [cars, setCars] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
         make: '',
         model: '',
@@ -12,56 +14,41 @@ export default function Cars({ auth }) {
         price: '',
         description: '',
     });
-    const [error, setError] = useState(null);
 
     useEffect(() => {
-        axios.get('/sanctum/csrf-cookie').then(() => {
-            axios
-                .get('/api/cars', {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                })
-                .then((response) => {
-                    setCars(response.data);
-                    setLoading(false);
-                })
-                .catch((error) => {
-                    console.error('Error fetching cars:', error);
-                    setError('Failed to load cars. Check server logs.');
-                    setLoading(false);
-                });
-        });
+        fetchCars();
     }, []);
 
-    const handleSubmit = (e) => {
+    const fetchCars = async () => {
+        try {
+            const response = await axios.get('/api/cars');
+            console.log('Fetched cars:', response.data);
+            setCars(response.data);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching cars:', err.response || err);
+            setError('Failed to load cars. Check server logs.');
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        axios
-            .get('/sanctum/csrf-cookie')
-            .then(() => {
-                axios
-                    .post('/api/cars', formData, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then((response) => {
-                        setCars([...cars, response.data]);
-                        setFormData({
-                            make: '',
-                            model: '',
-                            year: '',
-                            price: '',
-                            description: '',
-                        });
-                        setError(null);
-                    })
-                    .catch((error) => {
-                        console.error('Error posting car:', error);
-                        setError('Failed to post car. Check server logs.');
-                    });
+        try {
+            const response = await axios.post('/api/cars', formData);
+            console.log('Car posted successfully:', response.data);
+            setCars([...cars, response.data]);
+            setFormData({
+                make: '',
+                model: '',
+                year: '',
+                price: '',
+                description: '',
             });
+            setError(null);
+        } catch (err) {
+            console.error('Error posting car:', err.response || err);
+            setError('Failed to post car. Check server logs.');
+        }
     };
 
     const handleChange = (e) => {
@@ -71,94 +58,98 @@ export default function Cars({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Car Listings</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Cars</h2>}
         >
+            <Head title="Cars" />
+
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200">
-                            {loading ? (
-                                <p>Loading...</p>
-                            ) : error ? (
-                                <p className="text-red-500">{error}</p>
-                            ) : cars.length > 0 ? (
-                                <ul>
+                        <div className="p-6 text-gray-900">
+                            {error && <div className="text-red-500 mb-4">{error}</div>}
+
+                            <h3 className="text-lg font-semibold mb-4">Add a New Car</h3>
+                            <form onSubmit={handleSubmit} className="mb-8">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Make</label>
+                                        <input
+                                            type="text"
+                                            name="make"
+                                            value={formData.make}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Model</label>
+                                        <input
+                                            type="text"
+                                            name="model"
+                                            value={formData.model}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Year</label>
+                                        <input
+                                            type="number"
+                                            name="year"
+                                            value={formData.year}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Price</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={formData.price}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                                >
+                                    Post Car
+                                </button>
+                            </form>
+
+                            <h3 className="text-lg font-semibold mb-4">Car Listings</h3>
+                            {cars.length > 0 ? (
+                                <ul className="space-y-4">
                                     {cars.map((car) => (
-                                        <li key={car.id} className="mb-4">
-                                            {car.make} {car.model} ({car.year}) - EGP {car.price}
-                                            <br />
-                                            <small>{car.description}</small>
+                                        <li key={car.id} className="border p-4 rounded-md">
+                                            <h4 className="text-md font-semibold">
+                                                {car.make} {car.model} ({car.year})
+                                            </h4>
+                                            <p>Price: ${car.price}</p>
+                                            <p>{car.description}</p>
+                                            <p>Posted by: {car.user?.name || 'Unknown'}</p>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                <p>No cars listed yet.</p>
+                                <p>No cars available.</p>
                             )}
-                        </div>
-                        <div className="p-6 bg-white border-b border-gray-200">
-                            <h3 className="text-lg font-semibold">Post a Car</h3>
-                            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Make</label>
-                                    <input
-                                        type="text"
-                                        name="make"
-                                        value={formData.make}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Model</label>
-                                    <input
-                                        type="text"
-                                        name="model"
-                                        value={formData.model}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Year</label>
-                                    <input
-                                        type="number"
-                                        name="year"
-                                        value={formData.year}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Price (EGP)</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white hover:bg-indigo-700"
-                                >
-                                    Post Car
-                                </button>
-                                {error && <p className="text-red-500 mt-2">{error}</p>}
-                            </form>
                         </div>
                     </div>
                 </div>
