@@ -1,7 +1,14 @@
 <?php
 
+use App\Http\Controllers\CarController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/cars', [CarController::class, 'index']);
+    Route::post('/cars', [CarController::class, 'store']);
+});
+
+// Temporary test route to verify API loading
 Route::get('/test', function () {
-    return response()->json(['message' => 'API test route']);
+    return response()->json(['message' => 'API is working']);
 });
