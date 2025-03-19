@@ -43,7 +43,7 @@ class CarController extends Controller
             'year' => $validated['year'],
             'price' => $validated['price'],
             'description' => $validated['description'],
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user() ? $request->user()->id : null,
         ]);
 
         Log::info('Car created', ['car' => $car->toArray()]);
