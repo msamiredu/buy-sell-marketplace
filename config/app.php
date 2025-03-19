@@ -165,7 +165,6 @@ return [
          * Package Service Providers...
          */
         Laravel\Sanctum\SanctumServiceProvider::class,
-        Laravel\Vite\ViteServiceProvider::class,
         Inertia\ServiceProvider::class,
 
         /*
