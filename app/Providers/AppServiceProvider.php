@@ -24,9 +24,15 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Debug: Confirm RouteServiceProvider is loaded
+        file_put_contents(base_path('route_service_provider_loaded.txt'), 'RouteServiceProvider loaded');
+
         $this->configureRateLimiting();
 
         $this->routes(function () {
+            // Debug: Confirm API routes are being loaded
+            file_put_contents(base_path('api_routes_loading.txt'), 'API routes loading...');
+
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
