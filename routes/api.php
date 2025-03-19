@@ -8,7 +8,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cars', [CarController::class, 'store']);
 });
 
-// Temporary test route to verify API loading
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
