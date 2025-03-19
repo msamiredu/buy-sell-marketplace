@@ -12,17 +12,23 @@ export default function Cars({ auth }) {
         price: '',
         description: '',
     });
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         axios.get('/sanctum/csrf-cookie').then(() => {
             axios
-                .get('/api/cars')
+                .get('/api/cars', {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                })
                 .then((response) => {
                     setCars(response.data);
                     setLoading(false);
                 })
                 .catch((error) => {
                     console.error('Error fetching cars:', error);
+                    setError('Failed to load cars. Check server logs.');
                     setLoading(false);
                 });
         });
@@ -34,7 +40,12 @@ export default function Cars({ auth }) {
             .get('/sanctum/csrf-cookie')
             .then(() => {
                 axios
-                    .post('/api/cars', formData)
+                    .post('/api/cars', formData, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                    })
                     .then((response) => {
                         setCars([...cars, response.data]);
                         setFormData({
@@ -44,9 +55,11 @@ export default function Cars({ auth }) {
                             price: '',
                             description: '',
                         });
+                        setError(null);
                     })
                     .catch((error) => {
                         console.error('Error posting car:', error);
+                        setError('Failed to post car. Check server logs.');
                     });
             });
     };
@@ -66,6 +79,8 @@ export default function Cars({ auth }) {
                         <div className="p-6 bg-white border-b border-gray-200">
                             {loading ? (
                                 <p>Loading...</p>
+                            ) : error ? (
+                                <p className="text-red-500">{error}</p>
                             ) : cars.length > 0 ? (
                                 <ul>
                                     {cars.map((car) => (
@@ -142,6 +157,7 @@ export default function Cars({ auth }) {
                                 >
                                     Post Car
                                 </button>
+                                {error && <p className="text-red-500 mt-2">{error}</p>}
                             </form>
                         </div>
                     </div>
